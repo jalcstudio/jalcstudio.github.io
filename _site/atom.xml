@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+ 
+ <title>JALC</title>
+ <link href="http://www.jalc.io/" rel="self"/>
+ <link href="http://www.jalc.io"/>
+ <updated>2014-10-28T15:00:52+01:00</updated>
+ <id>http://www.jalc.io</id>
+ <author>
+   <name>Côme</name>
+   <email>come@wanadev.fr</email>
+ </author>
+
+ 
+ <entry>
+   <title>Triangulation Delaunay For Backgrounds</title>
+   <link href="http://www.jalc.io/tech/2014/10/28/triangulation-delaunay-for-backgrounds"/>
+   <updated>2014-10-28T00:00:00+01:00</updated>
+   <id>http://www.jalc.io/tech/2014/10/28/triangulation-delaunay-for-backgrounds</id>
+   <content type="html">&lt;p&gt;When you are bad at design, you may prefer procedural design generation tricks like that ;)&lt;/p&gt;
+
+&lt;p&gt;Here is the triangulation script used for #Avoid.&lt;/p&gt;
+
+&lt;h2 id=&quot;from&quot;&gt;from&lt;/h2&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/source.png&quot; alt=&quot;Example&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;to&quot;&gt;to&lt;/h2&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/images/bg.png&quot; alt=&quot;Example&quot; /&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;var test = &quot;truc&quot;;
+&lt;/code&gt;&lt;/pre&gt;
+</content>
+ </entry>
+ 
+ 
+</feed>

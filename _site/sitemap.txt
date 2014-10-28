@@ -1,0 +1,11 @@
+
+http://www.jalc.io/archive.html
+http://www.jalc.io/atom.xml
+http://www.jalc.io/categories.html
+http://www.jalc.io/index.html
+http://www.jalc.io/pages.html
+http://www.jalc.io/rss.xml
+http://www.jalc.io/sitemap.txt
+http://www.jalc.io/tags.html
+
+http://www.jalc.io/tech/2014/10/28/triangulation-delaunay-for-backgrounds
