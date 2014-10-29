@@ -5,8 +5,8 @@
         <description>JALC - Côme</description>
         <link>http://www.jalc.io</link>
         <link>http://www.jalc.io</link>
-        <lastBuildDate>2014-10-28T15:03:07+01:00</lastBuildDate>
-        <pubDate>2014-10-28T15:03:07+01:00</pubDate>
+        <lastBuildDate>2014-10-29T12:28:23+01:00</lastBuildDate>
+        <pubDate>2014-10-29T12:28:23+01:00</pubDate>
         <ttl>1800</ttl>
 
 
@@ -24,8 +24,7 @@
 
 &lt;p&gt;&lt;img src=&quot;/assets/images/bg.png&quot; alt=&quot;Example&quot; /&gt;&lt;/p&gt;
 
-&lt;pre&gt;&lt;code&gt;var test = &quot;truc&quot;;
-&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;a href=&quot;/pages/delaunay.html&quot; title=&quot;delaunay&quot;&gt;Test the script here&lt;/a&gt;&lt;/p&gt;
 </description>
                 <link>http://www.jalc.io/tech/2014/10/28/triangulation-delaunay-for-backgrounds</link>
                 <guid>http://www.jalc.io/tech/2014/10/28/triangulation-delaunay-for-backgrounds</guid>

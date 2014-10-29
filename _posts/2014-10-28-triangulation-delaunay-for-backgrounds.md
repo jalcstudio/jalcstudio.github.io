@@ -17,4 +17,4 @@ Here is the triangulation script used for #Avoid.
 
 ![Example]({{ site.url }}/assets/images/bg.png)
 
-    var test = "truc";
+[Test the script here](/pages/delaunay.html "delaunay")

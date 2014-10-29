@@ -1,0 +1,390 @@
+<html>
+<head><title>Canvas Delaunay Triangulation</title>
+<style>
+</style></head>
+<body><input type="file" id="file" />
+<canvas id="c1"></canvas>
+<canvas id="c2"></canvas>
+</body>
+<script type="text/javascript">
+
+var img = new Image();
+
+if (false) {
+  img.onload = init;
+  img.src = 'bg.jpg';
+} else {
+  var inputElement = document.getElementById("file");
+  inputElement.addEventListener("change", handleFile, false);
+  function handleFile() {
+    var fileList = this.files; /* now you can work with the file list */
+    var file = fileList[0];
+
+    var imageType = /image.*/;
+    
+    if (!file.type.match(imageType)) {
+      return;
+    }
+    
+    img.file = file;
+    
+    var reader = new FileReader();
+    reader.onload = (function(aImg) { return function(e) { aImg.src = e.target.result;console.log(aImg.width);init(); }; })(img);
+    reader.readAsDataURL(file);
+  }
+}
+
+var display, source, w,h;
+var points = [], drew = [];
+
+var c1 = null,c2 = null;
+function init() {
+
+  console.log('init', img.width, img.height);
+  c1 = document.getElementById('c1');
+  c2 = document.getElementById('c2');
+  c1.width = c2.width = img.width;
+  c1.height = c2.height = img.height;
+
+
+w = c1.width;
+h = c1.height;
+var coef = 20;
+var divideX = w/coef;
+var divideY = h/coef;
+
+for (var i = 0; i <= w; i += divideX) {
+    for (var j = 0; j <= h; j += divideY) {
+        if ( i == 0) {var x = 0;} else if (Math.abs(w-i) < 10) {var x = w;} else {var x = (i + divideX*(Math.random()*2-1)); }
+        if ( j == 0) {var y = 0;} else if (Math.abs(h-j) < 10) {var y = h;} else {var y = (j + divideY*(Math.random()*2-1)); }
+        if ( x <= w && y <= h) {
+            points.push({x: x, y:y, z: 0});
+        }
+    }
+}
+  display = c1.getContext('2d');
+  source = c2.getContext('2d');
+ // display.drawImage(img, 0, 0);
+ // c1.addEventListener('click', redraw, false);
+  c2.style.display = 'none';
+  //c1.style.display = 'none';
+  redraw();
+  document.getElementById("file").parentNode.removeChild(document.getElementById("file"));
+}
+
+function redraw(event) {
+  this.enable = this.enable || true;
+  if(!this.enable) return;
+  this.enable = false;
+ /* var x = event.clientX + document.body.scrollLeft - event.target.offsetLeft;
+  var y = event.clientY + document.body.scrollTop - event.target.offsetTop;
+  for(var i = 0; i < points.length; i++) {
+    if(points[i].x == x && points[i].y == y) return;
+  }
+  points.push({x: x, y: y, z: 0});*/
+  points.sort(function(a, b) { return a.x - b.x });
+  if(points.length < 3) return;
+  var tri = triangulate(points);
+  if(tri.n <= 0) return;
+  for(var i = 0; i < tri.n; i++) {
+    var t = tri.triangles[i];
+    var p1x = points[t.p1].x, p1y = points[t.p1].y,
+        p2x = points[t.p2].x, p2y = points[t.p2].y,
+        p3x = points[t.p3].x, p3y = points[t.p3].y;
+    var sign = [p1x, p1y, p2x, p2y, p3x, p3y].join(',');
+    if(drew.indexOf(sign) != -1) continue;
+
+    var mp1x = p1x + (p2x - p1x) / 2;
+    var mp1y = p1y + (p2y - p1y) / 2;
+
+    var mp2x = p2x + (p3x - p2x) / 2;
+    var mp2y = p2y + (p3y - p2y) / 2;
+
+    var mp3x = p3x + (p1x - p3x) / 2;
+    var mp3y = p3y + (p1y - p3y) / 2;
+
+    var coef = 1/10;
+    var coef2 = 1/15;
+
+    var p1bisX = p1x + (mp2x - p1x) * coef;
+    var p1bisY = p1y + (mp2y - p1y) * coef;
+    var p2bisX = p2x + (mp3x - p2x) * coef;
+    var p2bisY = p2y + (mp3y - p2y) * coef;
+    var p3bisX = p3x + (mp1x - p3x) * coef;
+    var p3bisY = p3y + (mp1y - p3y) * coef;
+
+    var p11bisX = p1bisX + (p3bisX - p1bisX) * coef2;
+    var p11bisY = p1bisY + (p3bisY - p1bisY) * coef2;
+    var p12bisX = p1bisX + (p2bisX - p1bisX) * coef2;
+    var p12bisY = p1bisY + (p2bisY - p1bisY) * coef2;
+
+    var p21bisX = p2bisX + (p1bisX - p2bisX) * coef2;
+    var p21bisY = p2bisY + (p1bisY - p2bisY) * coef2;
+    var p22bisX = p2bisX + (p3bisX - p2bisX) * coef2;
+    var p22bisY = p2bisY + (p3bisY - p2bisY) * coef2;
+
+    var p31bisX = p3bisX + (p2bisX - p3bisX) * coef2;
+    var p31bisY = p3bisY + (p2bisY - p3bisY) * coef2;
+    var p32bisX = p3bisX + (p1bisX - p3bisX) * coef2;
+    var p32bisY = p3bisY + (p1bisY - p3bisY) * coef2;
+
+    source.save();
+    source.beginPath();
+    source.moveTo(p1x, p1y);
+    source.lineTo(p2x, p2y);
+    source.lineTo(p3x, p3y);
+    source.clip();
+    source.drawImage(img, 0, 0, w, h);
+    var sx = Math.min(p1x, p2x, p3x), sy = Math.min(p1y, p2y, p3y);
+    var lx = Math.max(p1x, p2x, p3x), ly = Math.max(p1y, p2y, p3y);
+    if(sx < 0 || sy < 0 || lx >= source.width || ly >= source.height) continue;
+    var pixels = source.getImageData(sx, sy, lx - sx, ly - sy);
+    var p = pixels.data, count = 0, sum = [0,0,0];
+    for(var j = 0; j < p.length; j += 4) {
+      if(p[j + 3] == 0) continue;
+      sum[0] += p[j];
+      sum[1] += p[j + 1];
+      sum[2] += p[j + 2];
+      count++;
+    }
+    source.restore();
+    source.clearRect(0, 0, img.width, img.height);
+    
+    display.beginPath();
+    var r = +(Math.floor(sum[0] / count));
+    var g = +(Math.floor(sum[1] / count));
+    var b = +(Math.floor(sum[2] / count));
+    var grad = display.createLinearGradient(sx, 0, lx, 0);
+    grad.addColorStop(0, 'rgb(' + [r + 20, g + 20, b + 20].join(',') + ')');
+    grad.addColorStop(0.7, 'rgb(' + [r, g, b].join(',') + ')');
+    grad.addColorStop(1, 'rgb(' + [r - 20, g - 20, b - 20].join(',') + ')');
+
+
+    display.fillStyle = 'rgb(' + [r-10, g-10, b-10].join(',') + ')';
+    display.strokeStyle = 'rgb(' + [r-10, g-10, b-10].join(',') + ')';
+    display.beginPath();
+
+    display.moveTo(p1x, p1y);
+    display.lineTo(p2x, p2y);
+    display.lineTo(p3x, p3y);
+    display.lineTo(p1x, p1y);
+    display.fill();
+    display.stroke();
+
+    display.fillStyle = grad; //"#"+((1<<24)*Math.random()|0).toString(16);
+    display.beginPath();
+    // display.moveTo(pp1x, pp1y);
+    // display.quadraticCurveTo(p2x, p2y, pp2x, pp2y);
+    // display.quadraticCurveTo(p3x, p3y, pp3x, pp3y);
+    // display.quadraticCurveTo(p1x, p1y, pp1x, pp1y);
+
+    display.moveTo(p11bisX, p11bisY);
+    display.quadraticCurveTo(mp3x, mp3y, p32bisX, p32bisY);
+    display.quadraticCurveTo(p3bisX, p3bisY, p31bisX, p31bisY);
+    display.quadraticCurveTo(mp2x, mp2y, p22bisX, p22bisY);
+    display.quadraticCurveTo(p2bisX, p2bisY, p21bisX, p21bisY);
+    display.quadraticCurveTo(mp1x, mp1y, p12bisX, p12bisY);
+    display.quadraticCurveTo(p1bisX, p1bisY, p11bisX, p11bisY);
+
+    // display.moveTo(p1bisX, p1bisY);
+    // display.lineTo(p2bisX, p2bisY);
+    // display.lineTo(p3bisX, p3bisY);
+    // display.lineTo(p1bisX, p1bisY);
+    display.fill();
+
+
+    drew.push(sign);
+  }
+  this.enable = true;
+}
+
+// http://local.wasp.uwa.edu.au/~pbourke/papers/triangulate/
+function triangulate(points) {
+  var EPSILON = 0.0000000001;
+  function Edge() { this.p1 = -1, this.p2 = -1; }
+  
+  var pxyz = points.slice();
+  var nv = pxyz.length;
+  for(var i = 0; i < 3; i++) pxyz[nv + i] = {x: null, y: null, z: null};
+  var v = new Array(nv * 3);
+  for(var i = 0; i < v.length; i++) v[i] = {p1: null, p2: null, p3: null};
+  
+  var complete = [];
+  var edges = [];
+  var nedge = 0;
+  var trimax, emax = 200;
+  
+  var inside;
+  var xp, yp, x1, y1, x2, y2, x3, y3, xc, yc, r;
+  var xmin, xmax, ymin, ymax, xmid, ymid;
+  var dx, dy, dmax;
+  
+  var ntri = 0;
+  
+  trimax = 4 * nv;
+  complete = new Array(trimax);
+  for(var ic = 0; ic < trimax; ic++) complete[ic] = false;
+  
+  edges = new Array(emax);
+  for(var ie = 0; ie<emax; ie++) edges[ie] = new Edge();
+  
+  xmin = pxyz[0].x;
+  ymin = pxyz[0].y;
+  xmax = xmin;
+  ymax = ymin;
+  for(var i = 1; i < nv; i++) {
+    if(pxyz[i].x < xmin) xmin = pxyz[i].x;
+    if(pxyz[i].x > xmax) xmax = pxyz[i].x;
+    if(pxyz[i].y < ymin) ymin = pxyz[i].y;
+    if(pxyz[i].y > ymax) ymax = pxyz[i].y;
+  }
+  dx = xmax - xmin;
+  dy = ymax - ymin;
+  dmax = (dx > dy) ? dx : dy;
+  xmid = (xmax + xmin) / 2.0;
+  ymid = (ymax + ymin) / 2.0;
+  
+  pxyz[nv+0].x = xmid - 2.0 * dmax;
+  pxyz[nv+0].y = ymid - dmax;
+  pxyz[nv+0].z = 0.0;
+  pxyz[nv+1].x = xmid;
+  pxyz[nv+1].y = ymid + 2.0 * dmax;
+  pxyz[nv+1].z = 0.0;
+  pxyz[nv+2].x = xmid + 2.0 * dmax;
+  pxyz[nv+2].y = ymid - dmax;
+  pxyz[nv+2].z = 0.0;
+  v[0].p1 = nv;
+  v[0].p2 = nv + 1;
+  v[0].p3 = nv + 2;
+  complete[0] = false;
+  ntri = 1;
+  
+  for(var i = 0; i < nv; i++) {
+    xp = pxyz[i].x;
+    yp = pxyz[i].y;
+    nedge = 0;
+    
+    var circle = {x: null, y: null, z:null};
+    for(var j = 0; j < ntri; j++) {
+      if(complete[j]) continue;
+      x1 = pxyz[v[j].p1].x;
+      y1 = pxyz[v[j].p1].y;
+      x2 = pxyz[v[j].p2].x;
+      y2 = pxyz[v[j].p2].y;
+      x3 = pxyz[v[j].p3].x;
+      y3 = pxyz[v[j].p3].y;
+      inside = isCircumCircle(xp, yp, x1, y1, x2, y2, x3, y3, circle );
+      xc = circle.x; yc = circle.y; r = circle.z;
+      if(xc + r < xp) complete[j] = true;
+      if(inside) {
+        if(nedge + 3 >= emax) {
+          emax += 100;
+          var edges_n = new Array(emax);
+          for (var ie = 0; ie < emax; ie++) {
+            if(edges[ie]) edges_n[ie] = edges[ie];
+            else edges_n[ie] = new Edge()
+          }
+          edges = edges_n;
+        }
+        edges[nedge].p1 = v[j].p1;
+        edges[nedge].p2 = v[j].p2;
+        edges[nedge + 1].p1 = v[j].p2;
+        edges[nedge + 1].p2 = v[j].p3;
+        edges[nedge + 2].p1 = v[j].p3;
+        edges[nedge + 2].p2 = v[j].p1;
+        nedge += 3;
+        v[j].p1 = v[ntri - 1].p1;
+        v[j].p2 = v[ntri - 1].p2;
+        v[j].p3 = v[ntri - 1].p3;
+        complete[j] = complete[ntri - 1];
+        ntri--;
+        j--;
+      }
+    }
+
+    for(var j = 0; j < nedge - 1; j++) {
+      for(var k = j + 1; k < nedge; k++) {
+        if((edges[j].p1 == edges[k].p2) && (edges[j].p2 == edges[k].p1)) {
+          edges[j].p1 = -1;
+          edges[j].p2 = -1;
+          edges[k].p1 = -1;
+          edges[k].p2 = -1;
+        }
+        if((edges[j].p1 == edges[k].p1) && (edges[j].p2 == edges[k].p2)) {
+          edges[j].p1 = -1;
+          edges[j].p2 = -1;
+          edges[k].p1 = -1;
+          edges[k].p2 = -1;
+        }
+      }
+    }
+    
+    for(var j = 0; j < nedge; j++) {
+      if(edges[j].p1 == -1 || edges[j].p2 == -1) continue;
+      if(ntri >= trimax) return -1;
+      v[ntri].p1 = edges[j].p1;
+      v[ntri].p2 = edges[j].p2;
+      v[ntri].p3 = i;
+      complete[ntri] = false;
+      ntri++;
+    }
+  }
+  
+  for(var i = 0; i < ntri; i++) {
+    if(v[i].p1 >= nv || v[i].p2 >= nv || v[i].p3 >= nv) {
+      v[i] = v[ntri - 1];
+      ntri--;
+      i--;
+    }
+  }
+  
+  return {n: ntri, triangles: v};
+  
+  
+  function isCircumCircle(xp, yp, x1, y1, x2, y2, x3,  y3, circle) {
+    var m1,m2,mx1,mx2,my1,my2;
+    var dx,dy,rsqr,drsqr;
+    var xc, yc, r;
+    if(Math.abs(y1 - y2) < EPSILON && Math.abs(y2 - y3) < EPSILON) {
+      //print("CircumCircle: Points are coincident.");
+      return false;
+    }
+    if(Math.abs(y2 - y1) < EPSILON) {
+      m2 = - (x3 - x2) / (y3 - y2);
+      mx2 = (x2 + x3) / 2.0;
+      my2 = (y2 + y3) / 2.0;
+      xc = (x2 + x1) / 2.0;
+      yc = m2 * (xc - mx2) + my2;
+    } else if(Math.abs(y3-y2) < EPSILON) {
+      m1 = - (x2 - x1) / (y2 - y1);
+      mx1 = (x1 + x2) / 2.0;
+      my1 = (y1 + y2) / 2.0;
+      xc = (x3 + x2) / 2.0;
+      yc = m1 * (xc - mx1) + my1;  
+    } else {
+      m1 = - (x2 - x1) / (y2 - y1);
+      m2 = - (x3 - x2) / (y3 - y2);
+      mx1 = (x1 + x2) / 2.0;
+      mx2 = (x2 + x3) / 2.0;
+      my1 = (y1 + y2) / 2.0;
+      my2 = (y2 + y3) / 2.0;
+      xc = (m1 * mx1 - m2 * mx2 + my2 - my1) / (m1 - m2);
+      yc = m1 * (xc - mx1) + my1;
+    }
+    dx = x2 - xc;
+    dy = y2 - yc;
+    rsqr = dx * dx + dy * dy;
+    r = Math.sqrt(rsqr);
+    dx = xp - xc;
+    dy = yp - yc;
+    drsqr = dx * dx + dy * dy;
+    circle.x = xc;
+    circle.y = yc;
+    circle.z = r;
+    return (drsqr <= rsqr) ? true : false;
+  }
+}
+
+</script>
+</body>
+</html>
